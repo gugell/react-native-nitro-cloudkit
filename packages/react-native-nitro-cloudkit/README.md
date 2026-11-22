@@ -12,7 +12,7 @@ and on Android:
 | Import                                     | What it is                                                                           |
 | ------------------------------------------ | ------------------------------------------------------------------------------------ |
 | `react-native-nitro-cloudkit`              | `createCloudKit`, errors, token stores, types. Pure TypeScript, no native code.      |
-| `react-native-nitro-cloudkit/native`       | `createNativeAdapter()`: CKSyncEngine through Nitro. iOS 17+ only.                   |
+| `react-native-nitro-cloudkit/native`       | `createNativeAdapter()`: CKSyncEngine through Nitro. iOS 17+, macOS 14+ (RN macOS).  |
 | `react-native-nitro-cloudkit/memory`       | `createMemoryAdapter()`: CloudKit's semantics in memory, devices sharing a database. |
 | `react-native-nitro-cloudkit/record-store` | `createRecordStore()`: the record-store port of a last-writer-wins sync engine.      |
 | `react-native-nitro-cloudkit` (plugin)     | Expo config plugin: CloudKit entitlements and background mode.                       |
@@ -217,6 +217,7 @@ Every rejection is a `CloudKitError` with `code`, `message`, `retryAfterSeconds`
 | Platform         | Behaviour                                                                                      |
 | ---------------- | ---------------------------------------------------------------------------------------------- |
 | iOS 17+          | Full implementation (Swift).                                                                   |
+| macOS 14+        | The same Swift through react-native-macos (podspec `:osx`); not built in CI.                   |
 | iOS < 17         | `isSupported` is `false`. Calls reject `unsupported_os`.                                       |
 | Android          | The Kotlin hybrid object loads, `isSupported` is `false`, calls reject `unsupported_platform`. |
 | Web              | A stub (`browser` export) that reports unsupported.                                            |
@@ -292,7 +293,6 @@ account changes) have not run against a live iCloud account.
 
 - Shared database (`CKShare`), public database, queries, unencrypted fields, asset progress.
 - A CloudKit Web Services adapter.
-- macOS as a podspec platform.
 
 ## License
 

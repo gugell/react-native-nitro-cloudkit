@@ -10,8 +10,8 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  # CKSyncEngine needs iOS 17; older systems load the module and report it unsupported.
-  s.platforms    = { :ios => min_ios_version_supported }
+  # CKSyncEngine needs iOS 17 / macOS 14; older systems load the module and report it unsupported.
+  s.platforms    = { :ios => min_ios_version_supported, :osx => "14.0" }
   s.source       = { :git => "https://github.com/gugell/react-native-nitro-cloudkit.git", :tag => "v#{s.version}" }
 
   s.source_files = [
