@@ -1,0 +1,136 @@
+{
+  "name": "react-native-nitro-cloudkit",
+  "version": "0.1.0",
+  "description": "CloudKit for React Native on Apple's CKSyncEngine: private database, custom zone, end-to-end encrypted fields, assets, with pluggable adapters (native, memory) and an Expo config plugin.",
+  "license": "MIT",
+  "author": "gugell",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gugell/react-native-nitro-cloudkit.git",
+    "directory": "packages/react-native-nitro-cloudkit"
+  },
+  "homepage": "https://github.com/gugell/react-native-nitro-cloudkit#readme",
+  "bugs": "https://github.com/gugell/react-native-nitro-cloudkit/issues",
+  "keywords": [
+    "react-native",
+    "nitro-modules",
+    "cloudkit",
+    "icloud",
+    "cksyncengine",
+    "sync",
+    "offline-first",
+    "ios",
+    "expo",
+    "expo-config-plugin"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "react-native": "./src/index.ts",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./native": {
+      "types": "./lib/native.d.ts",
+      "react-native": "./src/native.ts",
+      "browser": "./lib/native.web.js",
+      "import": "./lib/native.js",
+      "default": "./lib/native.js"
+    },
+    "./memory": {
+      "types": "./lib/memory.d.ts",
+      "react-native": "./src/memory.ts",
+      "import": "./lib/memory.js",
+      "default": "./lib/memory.js"
+    },
+    "./record-store": {
+      "types": "./lib/record-store.d.ts",
+      "react-native": "./src/record-store.ts",
+      "import": "./lib/record-store.js",
+      "default": "./lib/record-store.js"
+    },
+    "./app.plugin": "./app.plugin.cjs",
+    "./app.plugin.js": "./app.plugin.cjs",
+    "./app.plugin.cjs": "./app.plugin.cjs",
+    "./plugin": {
+      "types": "./plugin/entitlements.d.cts",
+      "default": "./app.plugin.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "nitrogen",
+    "nitro.json",
+    "react-native.config.js",
+    "app.plugin.cjs",
+    "plugin",
+    "ios/**/*.swift",
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/fix-prefab.gradle",
+    "android/CMakeLists.txt",
+    "android/src",
+    "*.podspec",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "specs": "nitrogen --logLevel=\"warning\"",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "pnpm build",
+    "release": "release-it"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "expo": ">=52.0.0",
+    "react-native": ">=0.78.0",
+    "react-native-nitro-modules": ">=0.37.2 <0.38.0"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    },
+    "react-native-nitro-modules": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "nitrogen": "catalog:",
+    "react-native-nitro-modules": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "release-it": {
+    "npm": {
+      "publish": true,
+      "publishArgs": [
+        "--access",
+        "public",
+        "--provenance"
+      ]
+    },
+    "git": false,
+    "github": {
+      "release": false
+    },
+    "hooks": {
+      "before:init": "pnpm --dir ../.. check",
+      "after:bump": "pnpm build"
+    }
+  }
+}

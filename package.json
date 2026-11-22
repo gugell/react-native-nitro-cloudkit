@@ -1,0 +1,100 @@
+{
+  "name": "react-native-nitro-cloudkit-repo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.0.9",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "specs": "pnpm --filter react-native-nitro-cloudkit specs",
+    "build": "pnpm --filter react-native-nitro-cloudkit build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter react-native-nitro-cloudkit test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lockfile:check": "pnpm install --lockfile-only --frozen-lockfile",
+    "paths:check": "node scripts/check-tracked-paths.mjs",
+    "generated:check": "node scripts/check-generated.mjs",
+    "release:check": "bash ./scripts/check-release-script.sh",
+    "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm format:check && pnpm lockfile:check && pnpm paths:check && pnpm release:check && pnpm test",
+    "pack:check": "node scripts/pack-check.mjs",
+    "example": "pnpm --filter react-native-nitro-cloudkit-example",
+    "release": "bash ./scripts/release.sh",
+    "release:dry-run": "bash ./scripts/release.sh --dry-run"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@release-it/bumper": "8.0.1",
+    "@release-it/conventional-changelog": "12.0.2",
+    "cross-spawn": "^7.0.6",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "release-it": "21.1.3",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "git": {
+      "requireBranch": "main",
+      "requireUpstream": true,
+      "requireCleanWorkingDir": false,
+      "commitMessage": "chore: release v${version}",
+      "tagName": "v${version}",
+      "addUntrackedFiles": true
+    },
+    "github": {
+      "release": true,
+      "releaseName": "v${version}"
+    },
+    "hooks": {
+      "after:bump": "pnpm install --lockfile-only"
+    },
+    "plugins": {
+      "@release-it/bumper": {
+        "out": [
+          {
+            "file": "packages/react-native-nitro-cloudkit/package.json",
+            "path": "version"
+          },
+          {
+            "file": "apps/example/package.json",
+            "path": "version"
+          }
+        ]
+      },
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "conventionalcommits",
+          "types": [
+            {
+              "type": "feat",
+              "section": "Features"
+            },
+            {
+              "type": "fix",
+              "section": "Bug Fixes"
+            },
+            {
+              "type": "perf",
+              "section": "Performance"
+            },
+            {
+              "type": "docs",
+              "section": "Documentation"
+            },
+            {
+              "type": "chore(deps)",
+              "section": "Dependencies"
+            }
+          ]
+        },
+        "infile": "packages/react-native-nitro-cloudkit/CHANGELOG.md"
+      }
+    }
+  }
+}

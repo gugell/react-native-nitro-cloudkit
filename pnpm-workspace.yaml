@@ -1,0 +1,29 @@
+packages:
+  - packages/*
+  - apps/*
+
+# Expo and Metro are most reliable with a hoisted layout in a workspace.
+nodeLinker: hoisted
+autoInstallPeers: true
+strictPeerDependencies: false
+
+# Single source of truth for versions; packages write "catalog:".
+catalog:
+  # Nitro: react-native-nitro-modules and nitrogen MUST match.
+  react-native-nitro-modules: 0.37.2
+  nitrogen: 0.37.2
+  # Expo SDK 58 (expo install --fix keeps these in step).
+  expo: ~58.0.26
+  expo-status-bar: ~58.0.5
+  react: 19.3.0
+  react-dom: 19.3.0
+  react-native: 0.88.1
+  react-native-web: ~0.21.4
+  '@types/react': ~19.3.0
+  # Tooling
+  typescript: ~6.0.3
+  vitest: 5.1.1
+  eslint: 9.39.5
+  '@eslint/js': 9.39.5
+  typescript-eslint: ^8.71.1
+  prettier: 3.9.10
