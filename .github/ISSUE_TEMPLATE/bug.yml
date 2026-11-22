@@ -1,0 +1,29 @@
+name: Bug report
+description: Report a reproducible problem.
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Versions
+      description: Package, react-native-nitro-modules, React Native, Expo SDK, iOS version and device or simulator, Xcode.
+    validations:
+      required: true
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Adapter
+      options: [native, memory, record-store, custom]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Code, steps, expected and actual result. Remove container ids you consider private, tokens and user data.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: The CloudKitError code and message, logger output, and build errors.

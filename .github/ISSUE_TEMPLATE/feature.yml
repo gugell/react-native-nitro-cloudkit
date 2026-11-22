@@ -1,0 +1,15 @@
+name: Feature request
+description: Something CloudKit can do that this library cannot yet.
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What you want to do
+      description: The app use case, and the CloudKit API or behaviour involved.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: How it could look in the TypeScript core or as an adapter.

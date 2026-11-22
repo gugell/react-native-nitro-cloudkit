@@ -1,0 +1,74 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generated:check
+      - run: pnpm check
+      - run: pnpm pack:check
+      - run: pnpm release:dry-run
+      - name: Web export of the example (memory adapter, web stub of the native adapter)
+        run: pnpm --filter react-native-nitro-cloudkit-example exec expo export --platform web
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter react-native-nitro-cloudkit-example exec expo prebuild --platform ios --no-install
+      - run: pod install
+        working-directory: apps/example/ios
+        env:
+          LANG: en_US.UTF-8
+      - name: Build the example for the iOS simulator (no signing)
+        run: |
+          set -o pipefail
+          xcodebuild -workspace apps/example/ios/CloudKitExample.xcworkspace \
+            -scheme CloudKitExample -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 200
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter react-native-nitro-cloudkit-example exec expo prebuild --platform android --no-install
+      - name: Build the example (compiles the Kotlin stub and the Nitro C++ library)
+        run: ./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a --console=plain
+        working-directory: apps/example/android
