@@ -1,8 +1,8 @@
 import Foundation
 
-/// An error that crosses into JavaScript. Nitro turns a thrown Swift error into a JS `Error`
-/// whose message is the error's `description`, so the code travels in a fixed prefix the
-/// TypeScript layer parses: `[nitro-cloudkit:<code>;retryAfter=<s>] message`.
+/// A coded failure. Bridges turn it into a JavaScript `Error` whose message is `description`
+/// (Nitro does so for thrown Swift errors), so the code travels in a fixed prefix the TypeScript
+/// layer parses: `[nitro-cloudkit:<code>;retryAfter=<s>] message`.
 struct CloudKitFailure: Error, CustomStringConvertible {
   enum Code: String {
     case unsupportedPlatform = "unsupported_platform"

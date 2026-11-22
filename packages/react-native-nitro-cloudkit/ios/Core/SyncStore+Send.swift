@@ -5,9 +5,9 @@ import Foundation
 extension SyncStore {
   /// Saves and deletes records through CKSyncEngine and reports each one's outcome. Only this
   /// send's changes go out: leftovers of earlier sends are dropped (the caller sends them again).
-  func send(_ changes: CloudKitChangeSet) async throws -> CloudKitSendResult {
+  func send(_ changes: CoreChangeSet) async throws -> CoreSendResult {
     let engine = currentEngine()
-    var inputs: [CKRecord.ID: CloudKitRecordToSave] = [:]
+    var inputs: [CKRecord.ID: CoreRecordToSave] = [:]
     var types: [CKRecord.ID: String] = [:]
     var saves: [CKRecord.ID] = []
     var deletes: [CKRecord.ID] = []
@@ -28,7 +28,7 @@ extension SyncStore {
       deletes.append(id)
     }
     if saves.isEmpty && deletes.isEmpty {
-      return CloudKitSendResult(saved: [], deleted: [], conflicts: [], failed: [])
+      return CoreSendResult.empty
     }
 
     dropPendingChanges(of: engine, except: Set(types.keys))
@@ -70,11 +70,11 @@ extension SyncStore {
       toSave = Array(again)
       toDelete = []
     }
-    return collector?.result() ?? CloudKitSendResult(saved: [], deleted: [], conflicts: [], failed: [])
+    return collector?.result() ?? CoreSendResult.empty
   }
 
   /// A record to save: over the cached server version when there is one, else a new record.
-  func makeRecord(_ input: CloudKitRecordToSave, id: CKRecord.ID, reuseSystemFields: Bool)
+  func makeRecord(_ input: CoreRecordToSave, id: CKRecord.ID, reuseSystemFields: Bool)
     -> CKRecord
   {
     let record =

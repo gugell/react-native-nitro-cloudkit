@@ -28,10 +28,10 @@ struct Inbox {
     zoneWasDeleted = true
   }
 
-  func changes(token: String) -> CloudKitChanges {
-    CloudKitChanges(
-      modified: modified.values.map { $0.toNitro() },
-      deleted: deleted.map { CloudKitRecordID(recordType: $0.value, recordName: $0.key.recordName) },
+  func changes(token: String) -> CoreChanges {
+    CoreChanges(
+      modified: modified.values.map { $0.toCore() },
+      deleted: deleted.map { CoreRecordID(recordType: $0.value, recordName: $0.key.recordName) },
       token: token,
       zoneWasDeleted: zoneWasDeleted
     )

@@ -8,7 +8,7 @@ Follow Margelo's build-nitro-modules guidance:
 
 - Specs in `src/specs/*.nitro.ts`, with named types in their own files.
 - Run `pnpm specs` after a spec change and commit `nitrogen/generated`.
-- Swift `Hybrid*` classes and one type per file, extensions in `ios/Extensions/Type+operation.swift`.
+- Swift: one type per file. `ios/Core/` never imports Nitro (it also builds for macOS 14 hosts); `ios/Nitro/` holds the `Hybrid*` classes and the struct mapping. Extensions live in `ios/Core/Extensions/Type+operation.swift`.
 - Kotlin classes annotated `@Keep @DoNotStrip`.
 
 Use pnpm, catalog versions and the committed lockfile. Before claiming readiness, run the relevant

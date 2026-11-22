@@ -1,6 +1,6 @@
 import Foundation
 
-/// Thread-safe set of JS listeners. Nitro callbacks may be called from any thread.
+/// Thread-safe set of listeners; they may be called from any thread.
 final class ListenerSet<Value>: @unchecked Sendable {
   private let lock = NSLock()
   private var listeners: [UUID: (Value) -> Void] = [:]

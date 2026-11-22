@@ -11,7 +11,7 @@ in-memory CloudKit in tests, web previews and Android builds.
 app code
   └─ createCloudKit(options)          core: checks, deadlines, retries, tokens, logging
        └─ CloudKitAdapter              port: openStore → CloudKitAdapterStore
-            ├─ /native                 Nitro hybrid object → Swift SyncStore → CKSyncEngine
+            ├─ /native                 Nitro hybrid object → Swift core (SyncStore) → CKSyncEngine
             ├─ /memory                 in-memory database (devices share one)
             └─ your adapter            e.g. CloudKit Web Services
   └─ /record-store                     sync-engine port over a client (codec is replaceable)
@@ -33,8 +33,19 @@ The Nitro spec lives in `src/specs/`. `CloudKit` is the autolinked root, with `i
 `openStore`. `CloudKitStore` is returned by the factory and is not autolinked, following Margelo's
 factory pattern.
 
-On iOS, `HybridCloudKitStore` queues calls and bounds each with the timeout. The work happens in
-`SyncStore`, a Swift actor that is the `CKSyncEngineDelegate`:
+The Swift is in two layers:
+
+- **`ios/Core/`** has no Nitro: Codable value types that mirror the TS specs (`CoreRecord`,
+  `CoreChanges`, …) and `CloudKitStoreCore`, which opens one store per container, queues calls,
+  bounds each with the timeout and codes errors. It builds for iOS 17+ and macOS 14+, so another
+  host (a Node-API addon in an Electron main process) can compile the same sources and pass the
+  values as JSON. On macOS it reads the process's entitlements and rejects `misconfigured`
+  instead of letting `CKContainer` trap.
+- **`ios/Nitro/`** has the hybrid objects, which only map Nitro's structs to the core's and back.
+  Opening a store also registers for remote notifications, so CKSyncEngine fetches on CloudKit's
+  silent pushes.
+
+The work happens in `SyncStore`, a Swift actor that is the `CKSyncEngineDelegate`:
 
 - **Token = state serialization.** `.stateUpdate` events update the next token. The engine is
   rebuilt from whatever token the caller passes, so the caller owns persistence.

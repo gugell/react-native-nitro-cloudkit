@@ -2,14 +2,14 @@
 import Foundation
 
 extension CKRecord {
-  /// The record as JS sees it: its encrypted string fields and server modification time.
-  func toNitro() -> CloudKitRecord {
+  /// The record as callers see it: its encrypted string fields and server modification time.
+  func toCore() -> CoreRecord {
     var fields: [String: String] = [:]
     for key in encryptedValues.allKeys() {
       if let value = encryptedValues[key] as? String { fields[key] = value }
     }
     let modifiedAt = (modificationDate ?? creationDate).map { $0.timeIntervalSince1970 * 1000 } ?? 0
-    return CloudKitRecord(
+    return CoreRecord(
       recordType: recordType,
       recordName: recordID.recordName,
       encryptedFields: fields,

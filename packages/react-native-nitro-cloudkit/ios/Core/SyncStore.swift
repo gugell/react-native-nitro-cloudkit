@@ -3,14 +3,14 @@ import Foundation
 
 /// One container's private database and one record zone, driven by CKSyncEngine (WWDC23
 /// "Sync to iCloud with CKSyncEngine"). The caller owns persistence: the engine state travels to
-/// JS as the token returned by `fetch`, and the engine is rebuilt from whatever token comes back.
+/// the caller as the token returned by `fetch`, and the engine is rebuilt from whatever token comes back.
 /// Calls are serialized by the hybrid object; engine events arrive re-entrantly while a fetch or
 /// send is awaited.
 @available(iOS 17.0, macOS 14.0, *)
 actor SyncStore {
   nonisolated let containerIdentifier: String
   nonisolated let zoneName: String
-  nonisolated let accountListeners = ListenerSet<CloudKitAccountChange>()
+  nonisolated let accountListeners = ListenerSet<CoreAccountChange>()
   nonisolated let remoteChangeListeners = ListenerSet<Void>()
 
   let container: CKContainer
@@ -42,7 +42,7 @@ actor SyncStore {
   var identityLoaded = false
   var accountObserver: NSObjectProtocol?
 
-  init(options: CloudKitStoreOptions) {
+  init(options: CoreStoreOptions) {
     containerIdentifier = options.containerIdentifier
     zoneName = options.zoneName
     container = CKContainer(identifier: options.containerIdentifier)
@@ -102,7 +102,7 @@ actor SyncStore {
 
   // MARK: Records
 
-  func fetch(token rawToken: String?) async throws -> CloudKitChanges {
+  func fetch(token rawToken: String?) async throws -> CoreChanges {
     let token = rawToken.flatMap { $0.isEmpty ? nil : $0 }
     let engine = try engine(continuingFrom: token)
     fetching = true
@@ -119,14 +119,14 @@ actor SyncStore {
     return changes
   }
 
-  func fetchRecord(type: String, name: String) async throws -> CloudKitRecord? {
+  func fetchRecord(type: String, name: String) async throws -> CoreRecord? {
     let id = CKRecord.ID(recordName: name, zoneID: zoneID)
     guard let record = try await lookup(id, desiredKeys: nil), record.recordType == type else {
       return nil
     }
     cache.store(record)
     cache.flush()
-    return record.toNitro()
+    return record.toCore()
   }
 
   /// One record by id; nil when it or its zone does not exist.

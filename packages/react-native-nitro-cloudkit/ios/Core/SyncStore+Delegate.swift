@@ -50,7 +50,7 @@ extension SyncStore: CKSyncEngineDelegate {
 
     case .didFetchChanges:
       cache.flush()
-      // Fetched on its own (push, launch): tell JS there is something to pull.
+      // Fetched on its own (push, launch): tell listeners there is something to pull.
       if !fetching && !inbox.isEmpty { remoteChangeListeners.emit(()) }
 
     case .sentDatabaseChanges(let changes):

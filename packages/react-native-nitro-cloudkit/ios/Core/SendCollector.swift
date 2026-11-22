@@ -5,9 +5,9 @@
 struct SendCollector {
   /// Every record of this send, with its type (deletion events only carry ids).
   let types: [CKRecord.ID: String]
-  private(set) var saved: [CloudKitRecord] = []
-  private(set) var deleted: [CloudKitRecordID] = []
-  private(set) var conflicts: [CloudKitRecord] = []
+  private(set) var saved: [CoreRecord] = []
+  private(set) var deleted: [CoreRecordID] = []
+  private(set) var conflicts: [CoreRecord] = []
   private(set) var failed: [CKRecord.ID: CloudKitFailure] = [:]
   private(set) var settled: Set<CKRecord.ID> = []
   /// Saves that failed because the zone was missing: sent again after the zone is saved.
@@ -22,17 +22,17 @@ struct SendCollector {
   func contains(_ id: CKRecord.ID) -> Bool { types[id] != nil }
 
   mutating func save(_ record: CKRecord) {
-    saved.append(record.toNitro())
+    saved.append(record.toCore())
     settle(record.recordID)
   }
 
   mutating func conflict(_ serverRecord: CKRecord) {
-    conflicts.append(serverRecord.toNitro())
+    conflicts.append(serverRecord.toCore())
     settle(serverRecord.recordID)
   }
 
   mutating func delete(_ id: CKRecord.ID) {
-    deleted.append(CloudKitRecordID(recordType: types[id] ?? "", recordName: id.recordName))
+    deleted.append(CoreRecordID(recordType: types[id] ?? "", recordName: id.recordName))
     settle(id)
   }
 
@@ -47,17 +47,17 @@ struct SendCollector {
   }
 
   /// The result; changes CloudKit never confirmed are reported failed, never silently dropped.
-  func result() -> CloudKitSendResult {
+  func result() -> CoreSendResult {
     var failures = failed
     for id in types.keys where !settled.contains(id) {
       failures[id] = CloudKitFailure(.unknown, "CloudKit did not confirm this change")
     }
-    return CloudKitSendResult(
+    return CoreSendResult(
       saved: saved,
       deleted: deleted,
       conflicts: conflicts,
       failed: failures.map { id, failure in
-        CloudKitRecordFailure(
+        CoreRecordFailure(
           recordType: types[id] ?? "",
           recordName: id.recordName,
           code: failure.code.rawValue,

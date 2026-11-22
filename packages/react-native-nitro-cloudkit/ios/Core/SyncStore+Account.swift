@@ -4,15 +4,15 @@ import Foundation
 
 @available(iOS 17.0, macOS 14.0, *)
 extension SyncStore {
-  func account() async throws -> CloudKitAccount {
+  func account() async throws -> CoreAccount {
     let status = try await container.accountStatus()
     guard status == .available else {
       if !identityLoaded { remember(nil) }
-      return CloudKitAccount(status: status.toNitro(), identity: nil)
+      return CoreAccount(status: status.toCore(), identity: nil)
     }
     let identity = try await currentIdentity()
     if !identityLoaded { remember(identity) }
-    return CloudKitAccount(status: .available, identity: identity)
+    return CoreAccount(status: .available, identity: identity)
   }
 
   /// A hash of the user record id: stable per Apple ID and container, never the raw id.
@@ -39,7 +39,7 @@ extension SyncStore {
   }
 
   /// Compares the account with the one last seen; on a sign-out or switch, forgets local state
-  /// (never mix two accounts' change tags) and tells JS.
+  /// (never mix two accounts' change tags) and tells listeners.
   func accountMayHaveChanged() async {
     let wasLoaded = identityLoaded
     let before = knownIdentity
@@ -52,9 +52,9 @@ extension SyncStore {
     }
     remember(after)
     guard wasLoaded, before != after else { return }
-    let type: CloudKitAccountChangeType =
-      before == nil ? .signin : after == nil ? .signout : .switchaccounts
-    if type != .signin { await reset() }
-    accountListeners.emit(CloudKitAccountChange(type: type))
+    let type: CoreAccountChangeType =
+      before == nil ? .signIn : after == nil ? .signOut : .switchAccounts
+    if type != .signIn { await reset() }
+    accountListeners.emit(CoreAccountChange(type: type))
   }
 }
