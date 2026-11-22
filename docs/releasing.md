@@ -47,7 +47,7 @@ Do not pass an increment positionally alongside `--preRelease` unless you mean t
 
 Graduating to stable is a release with no `--preRelease`: from `0.2.0-alpha.1` an ordinary `pnpm release` publishes `0.2.0` to `latest`.
 
-Verified locally by rehearsal: `0.1.0` with `--preRelease=alpha` resolves `0.2.0-alpha.0` (the conventional commits since `v0.1.0` recommend a minor bump); with the manifest at `0.2.0-alpha.0` the same command resolves `0.2.0-alpha.1`, and without the flag it resolves `0.2.0`.
+The manifests start at `0.0.0`, so the first ordinary release (the commits recommend a minor bump) publishes `0.1.0`.
 
 ### From the Release workflow
 
