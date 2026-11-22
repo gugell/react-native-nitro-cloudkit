@@ -65,7 +65,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm --filter react-native-nitro-cloudkit-example exec expo prebuild --platform android --no-install
