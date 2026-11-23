@@ -5,6 +5,8 @@ CloudKit for React Native, on Apple's [`CKSyncEngine`](https://developer.apple.c
 and one **custom record zone**. Every record field is **end-to-end encrypted**, files travel as
 `CKAsset`s, and every call is async and rejects with a coded error instead of hanging.
 
+![Demo: a note saved on an iPhone reaches the Mac encrypted; offline edits on both merge per field](https://raw.githubusercontent.com/gugell/react-native-nitro-cloudkit/main/docs/demo/demo.gif)
+
 The public API is a small TypeScript core with **pluggable adapters**. Nitro is one adapter, not the
 API. The same code runs against CKSyncEngine on iOS and an in-memory CloudKit in tests, on the web
 and on Android:
@@ -17,7 +19,7 @@ and on Android:
 | `react-native-nitro-cloudkit/record-store` | `createRecordStore()`: the record-store port of a last-writer-wins sync engine.      |
 | `react-native-nitro-cloudkit` (plugin)     | Expo config plugin: CloudKit entitlements and background mode.                       |
 
-| `react-native-nitro-cloudkit-watermelondb` | Separate package: sync a [WatermelonDB](https://watermelondb.dev) database through CloudKit. See [its README](../react-native-nitro-cloudkit-watermelondb/README.md). |
+| `react-native-nitro-cloudkit-watermelondb` | Separate package: sync a [WatermelonDB](https://watermelondb.dev) database through CloudKit. See [its README](https://github.com/gugell/react-native-nitro-cloudkit/blob/main/packages/react-native-nitro-cloudkit-watermelondb/README.md). |
 
 > **Status: 0.x.** Verified against live iCloud (Production environment) with a release build of a
 > real app on iPhone: uploads, downloads across devices, deletions, assets. The JS layer is unit
@@ -308,7 +310,7 @@ const sync = createWatermelonSync(cloud, { tokenStore });
 await synchronize({ database, ...sync, sendCreatedAsUpdated: true });
 ```
 
-See [its README](../react-native-nitro-cloudkit-watermelondb/README.md).
+See [its README](https://github.com/gugell/react-native-nitro-cloudkit/blob/main/packages/react-native-nitro-cloudkit-watermelondb/README.md).
 
 ## Android
 

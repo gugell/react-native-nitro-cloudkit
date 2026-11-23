@@ -3,7 +3,7 @@
 Sync a [WatermelonDB](https://watermelondb.dev) database through the user's own iCloud, with no
 server, accounts or backend bill. It supplies the `pullChanges` and `pushChanges` that
 WatermelonDB's [`synchronize()`](https://watermelondb.dev/docs/Sync/Frontend) asks for, built on
-[react-native-nitro-cloudkit](../react-native-nitro-cloudkit/README.md).
+[react-native-nitro-cloudkit](https://github.com/gugell/react-native-nitro-cloudkit/blob/main/packages/react-native-nitro-cloudkit/README.md).
 
 ```ts
 import { synchronize } from '@nozbe/watermelondb/sync';
@@ -38,7 +38,7 @@ npm install react-native-nitro-cloudkit react-native-nitro-cloudkit-watermelondb
 
 Set up the core first: the Expo plugin, the App ID's iCloud and push capabilities, and the schema
 deployed to Production before TestFlight. See the
-[core README](../react-native-nitro-cloudkit/README.md#install).
+[core README](https://github.com/gugell/react-native-nitro-cloudkit/blob/main/packages/react-native-nitro-cloudkit/README.md#install).
 
 ## Use
 
@@ -116,7 +116,7 @@ sync, and WatermelonDB keeps the row pending.
 
 - **iOS 17+ and macOS 14+** through the native adapter. On Android the adapter reports
   `isSupported: false`, so run sync only where it's true. See
-  [Android](../react-native-nitro-cloudkit/README.md#android).
+  [Android](https://github.com/gugell/react-native-nitro-cloudkit/blob/main/packages/react-native-nitro-cloudkit/README.md#android).
 - **1 MB per row.** Keep files out of columns. Store them with `cloud.putAsset` and keep the asset
   name in a column.
 - No WatermelonDB **migration syncs** (`migrationsEnabledAtVersion`). A new column arrives with the
