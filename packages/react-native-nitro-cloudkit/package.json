@@ -122,7 +122,8 @@
         "--access",
         "public",
         "--provenance"
-      ]
+      ],
+      "publishPath": "package.tgz"
     },
     "git": false,
     "github": {
@@ -130,7 +131,7 @@
     },
     "hooks": {
       "before:init": "pnpm --dir ../.. check",
-      "after:bump": "pnpm build"
+      "after:bump": "pnpm build && pnpm pack --out package.tgz"
     }
   }
 }

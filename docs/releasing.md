@@ -1,6 +1,6 @@
 # Releasing
 
-The npm package is `react-native-nitro-cloudkit`. The example app and the repository root stay private. The release flow follows [Margelo's release-it guidance](https://github.com/margelo/react-native-skills/blob/main/skills/build-nitro-modules/references/release-it-publishing.md) and VisionCamera's two-pass script. Publishing requires npm package ownership and trusted publishing configured as described below.
+The npm packages are `react-native-nitro-cloudkit` and `react-native-nitro-cloudkit-watermelondb`, released together at one version. The example app and the repository root stay private. The release flow follows [Margelo's release-it guidance](https://github.com/margelo/react-native-skills/blob/main/skills/build-nitro-modules/references/release-it-publishing.md) and VisionCamera's two-pass script. Publishing requires npm package ownership and trusted publishing configured as described below.
 
 ## Before publication
 
@@ -19,7 +19,7 @@ CI's `ios` and `android` jobs build the example app natively; they must be green
 
 `pnpm release` runs `scripts/release.sh`, which releases in two passes and forwards its arguments to both, so they agree on the increment:
 
-1. every package under `packages/*` publishes **itself** to npm — `git` and `github` are disabled in the package's own `release-it` block, whose `before:init` hook runs `pnpm check` and whose `after:bump` hook rebuilds `lib/` (the tarball is packed with `prepack`, which builds again);
+1. every package under `packages/*` publishes **itself** to npm — `git` and `github` are disabled in the package's own `release-it` block, whose `before:init` hook runs `pnpm check` and whose `after:bump` hook rebuilds `lib/` and packs `package.tgz` **with pnpm**, which npm then publishes (`publishPath`). pnpm rewrites `workspace:` and `catalog:` specs to real versions; a plain `npm publish` of the directory would ship them as they are, and a `workspace:^` peer breaks every install. The tarball is what `pnpm pack:check` verifies;
 2. the repository root makes **one** version bump commit, tag and GitHub release — `npm.publish` is disabled there, `@release-it/bumper` writes the new version into the package and the example app, and `@release-it/conventional-changelog` writes the package changelog.
 
 The root pass allows a dirty working directory on purpose: the packages have already bumped their own `package.json` by the time it runs. Configuration lives in the `release-it` block of each `package.json`; there is no separate config file.
@@ -76,8 +76,8 @@ What the workflow already does:
 What has to be done once, outside this repository:
 
 1. **Create the GitHub environment.** Repository → Settings → Environments → New environment, named exactly `npm`. Add required reviewers here if you want a human gate before publishing.
-2. **Publish the package once by hand.** A trusted publisher is configured on a package's own settings page, which does not exist until the package does. This is the bootstrap step, and the only one that involves a credential.
-3. **Configure the trusted publisher.** `https://www.npmjs.com/package/react-native-nitro-cloudkit/access` → Trusted publishing → GitHub Actions. Fill in the organization or user, the repository, the workflow filename (`release.yml`, the filename alone, not a path) and the environment (`npm`). npm does not validate these when you save them: a typo appears only as a failed publish.
+2. **Publish each package once by hand.** A trusted publisher is configured on a package's own settings page, which does not exist until the package does. This is the bootstrap step, and the only one that involves a credential.
+3. **Configure the trusted publisher**, for each package. `https://www.npmjs.com/package/react-native-nitro-cloudkit/access` → Trusted publishing → GitHub Actions. Fill in the organization or user, the repository, the workflow filename (`release.yml`, the filename alone, not a path) and the environment (`npm`). npm does not validate these when you save them: a typo appears only as a failed publish.
 4. **Lock the package down.** On the same page, select "Require two-factor authentication and disallow tokens". After this, OIDC is the only way to publish, and any token that leaks is useless.
 
 For step 2, prefer a local `npm publish` where npm prompts for your OTP interactively — the credential never leaves your machine and nothing needs storing. Use a granular automation token only if you must publish from CI before trusted publishing exists, and revoke it immediately afterwards; it exists to cover one publish.
