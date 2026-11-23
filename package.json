@@ -8,9 +8,9 @@
   },
   "scripts": {
     "specs": "pnpm --filter react-native-nitro-cloudkit specs",
-    "build": "pnpm --filter react-native-nitro-cloudkit build",
+    "build": "pnpm --filter \"./packages/*\" build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter react-native-nitro-cloudkit test",
+    "test": "pnpm --filter \"./packages/*\" test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

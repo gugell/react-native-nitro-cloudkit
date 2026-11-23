@@ -23,6 +23,8 @@ catalog:
   # Tooling
   typescript: ~6.0.3
   vitest: 5.1.1
+  # Tests of the WatermelonDB sync (react-native-nitro-cloudkit/watermelondb)
+  '@nozbe/watermelondb': 0.28.0
   eslint: 9.39.5
   '@eslint/js': 9.39.5
   typescript-eslint: ^8.71.1

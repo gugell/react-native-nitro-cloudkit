@@ -1,0 +1,4 @@
+{
+  "extends": "../react-native-nitro-cloudkit/tsconfig.json",
+  "include": ["src", "tests"]
+}
