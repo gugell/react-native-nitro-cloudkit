@@ -75,9 +75,11 @@ What the workflow already does:
 
 What has to be done once, outside this repository:
 
+Both packages are configured (2026-11-23): GitHub Actions, `gugell/react-native-nitro-cloudkit`, `release.yml`, environment `npm`, publish and stage publish — `npm trust list <package>` shows it. The steps, for a new package:
+
 1. **Create the GitHub environment.** Repository → Settings → Environments → New environment, named exactly `npm`. Add required reviewers here if you want a human gate before publishing.
-2. **Publish each package once by hand.** A trusted publisher is configured on a package's own settings page, which does not exist until the package does. This is the bootstrap step, and the only one that involves a credential.
-3. **Configure the trusted publisher**, for each package. `https://www.npmjs.com/package/react-native-nitro-cloudkit/access` → Trusted publishing → GitHub Actions. Fill in the organization or user, the repository, the workflow filename (`release.yml`, the filename alone, not a path) and the environment (`npm`). npm does not validate these when you save them: a typo appears only as a failed publish.
+2. **Publish each package once by hand.** A trusted publisher is configured on a package's own settings page, which does not exist until the package does. This is the bootstrap step, and the only one that involves a credential. A brand-new package's first publish is staged: the registry shows a `0.0.0-stage` placeholder ("Temporary Holding Version") until npm releases the real version. Trusted publishing can be configured as soon as the placeholder exists. Without a TTY, npm 10 cannot run the browser 2FA flow; run the publish in a terminal, or under `script -q /dev/null npm publish …`.
+3. **Configure the trusted publisher**, for each package: `npm trust github <package> --file release.yml --repository gugell/react-native-nitro-cloudkit --environment npm --allow-publish --allow-stage-publish` (npm 11), or `https://www.npmjs.com/package/react-native-nitro-cloudkit/access` → Trusted publishing → GitHub Actions. Fill in the organization or user, the repository, the workflow filename (`release.yml`, the filename alone, not a path) and the environment (`npm`). npm does not validate these when you save them: a typo appears only as a failed publish.
 4. **Lock the package down.** On the same page, select "Require two-factor authentication and disallow tokens". After this, OIDC is the only way to publish, and any token that leaks is useless.
 
 For step 2, prefer a local `npm publish` where npm prompts for your OTP interactively — the credential never leaves your machine and nothing needs storing. Use a granular automation token only if you must publish from CI before trusted publishing exists, and revoke it immediately afterwards; it exists to cover one publish.
@@ -87,7 +89,7 @@ Never store npm or GitHub tokens in the repository, in a workflow file, or in th
 Two failure modes worth recognizing:
 
 - **`npm error need auth`** in the workflow — the trusted publisher is not configured, or the repository, workflow filename or environment does not match what npm has.
-- **Published, but no provenance attestation** — the `repository` field in `package.json` must match the configured repository exactly (it is `git+https://github.com/gugell/react-native-nitro-cloudkit.git`). The package's `publishArgs` already pass `--provenance`. Check the first published version for a provenance badge.
+- **Published, but no provenance attestation** — trusted publishing attaches provenance on its own (no `--provenance` flag, as in `react-native-nitro-tracing` and `expo-native-config`), but only when the `repository` field in `package.json` matches the configured repository exactly (it is `git+https://github.com/gugell/react-native-nitro-cloudkit.git`). Check the first published version for a provenance badge.
 
 Inspect the workflow and `scripts/release.sh` for the supported path; do not create a duplicate manual publish for the same version.
 

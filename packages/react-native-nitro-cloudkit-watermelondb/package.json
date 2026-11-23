@@ -69,8 +69,7 @@
       "publish": true,
       "publishArgs": [
         "--access",
-        "public",
-        "--provenance"
+        "public"
       ],
       "publishPath": "package.tgz"
     },
