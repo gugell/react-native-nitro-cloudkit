@@ -15,7 +15,13 @@ app code
             ├─ /memory                 in-memory database (devices share one)
             └─ your adapter            e.g. CloudKit Web Services
   └─ /record-store                     sync-engine port over a client (codec is replaceable)
+  └─ react-native-nitro-cloudkit-watermelondb
+                                       WatermelonDB's pullChanges/pushChanges over a client
 ```
+
+Integrations with a third-party library are **separate packages** that declare the library as a
+peer and never import it at runtime, so the core stays free of it and apps that don't use it
+install nothing.
 
 - **Core** (`src/createCloudKit.ts`): validates options at creation, opens the store lazily (once,
   retried after a failure), checks input before the adapter sees it (record size, names), bounds

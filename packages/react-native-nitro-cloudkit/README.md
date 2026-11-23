@@ -17,9 +17,42 @@ and on Android:
 | `react-native-nitro-cloudkit/record-store` | `createRecordStore()`: the record-store port of a last-writer-wins sync engine.      |
 | `react-native-nitro-cloudkit` (plugin)     | Expo config plugin: CloudKit entitlements and background mode.                       |
 
-> **Status: 0.x, pre-release.** The JS layer is tested, and the Swift and Kotlin compile in CI. The
-> native CKSyncEngine paths have not yet been exercised against a live iCloud account. See
-> [Status](#status).
+| `react-native-nitro-cloudkit-watermelondb` | Separate package: sync a [WatermelonDB](https://watermelondb.dev) database through CloudKit. See [its README](../react-native-nitro-cloudkit-watermelondb/README.md). |
+
+> **Status: 0.x.** Verified against live iCloud (Production environment) with a release build of a
+> real app on iPhone: uploads, downloads across devices, deletions, assets. The JS layer is unit
+> tested, and the Swift and Kotlin compile in CI. See [Status](#status).
+
+## Why
+
+Apple already runs a sync server for every app: CloudKit's private database. This package gives a
+React Native app that server without the parts that usually make it hard.
+
+- **No backend to run.** No server, no auth system, no database bill. Each user's data lives in
+  their own iCloud and counts against their storage, not yours.
+- **Private by default.** Every field goes to `CKRecord.encryptedValues`, end-to-end encrypted with
+  keys in the user's iCloud Keychain. You can't read user data, and neither can Apple.
+- **Apple's sync engine.** `CKSyncEngine` (iOS 17+) handles scheduling, batching, silent pushes,
+  retries after network loss and account changes. The same engine runs Apple's own apps.
+- **Incremental and conflict-aware.** Pull only what changed since a token, and push over change
+  tags, so a newer server version comes back as a conflict to merge instead of being overwritten.
+- **Files included.** Photos and documents travel as `CKAsset`s in their own zone, downloaded only
+  when you ask.
+- **Testable without a device.** The `memory` adapter implements CloudKit's semantics in plain
+  TypeScript: several "devices" on one database, account switches, injected failures. Unit tests,
+  web previews and Android builds run the same code.
+- **Fast and typed.** Nitro (JSI) instead of the bridge: typed structs, no JSON over a queue.
+- **Fails loudly, never hangs.** Every call has a deadline, retries what's retryable (honouring
+  CloudKit's `retryAfter`) and rejects with a typed error code.
+- **Expo-ready.** A config plugin writes the entitlements and merges with iCloud Documents.
+
+### When to use something else
+
+- You need **Android or web users to share the same data**: CloudKit is Apple-only (see
+  [Android](#android)). Use a cross-platform backend instead.
+- You need **sharing between users** or **public data**: not built yet (`CKShare`, public database).
+- You need **server-side logic** (queries across users, webhooks): CloudKit's private database is
+  storage, not a backend.
 
 ## Install
 
@@ -214,14 +247,14 @@ Every rejection is a `CloudKitError` with `code`, `message`, `retryAfterSeconds`
 
 `createNativeAdapter()` uses CKSyncEngine through a Nitro hybrid object.
 
-| Platform         | Behaviour                                                                                      |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| iOS 17+          | Full implementation (Swift).                                                                   |
-| macOS 14+        | The same Swift through react-native-macos (podspec `:osx`); not built in CI.                   |
-| iOS < 17         | `isSupported` is `false`. Calls reject `unsupported_os`.                                       |
-| Android          | The Kotlin hybrid object loads, `isSupported` is `false`, calls reject `unsupported_platform`. |
-| Web              | A stub (`browser` export) that reports unsupported.                                            |
-| Expo Go/unlinked | `isSupported` is `false`. Opening rejects `misconfigured`.                                     |
+| Platform         | Behaviour                                                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| iOS 17+          | Full implementation (Swift).                                                                                            |
+| macOS 14+        | The same Swift through react-native-macos (podspec `:osx`); not built in CI.                                            |
+| iOS < 17         | `isSupported` is `false`. Calls reject `unsupported_os`.                                                                |
+| Android          | The Kotlin hybrid object loads, `isSupported` is `false`, calls reject `unsupported_platform`. See [Android](#android). |
+| Web              | A stub (`browser` export) that reports unsupported.                                                                     |
+| Expo Go/unlinked | `isSupported` is `false`. Opening rejects `misconfigured`.                                                              |
 
 The SDK interface shows how it maps onto CKSyncEngine:
 
@@ -264,6 +297,65 @@ last-writer-wins sync engine:
 - `fatalCodes` (default `not_authenticated`, `quota_exceeded`, `network`, `misconfigured`) fail the
   whole push instead of leaving a record for the next run.
 
+### WatermelonDB: `react-native-nitro-cloudkit-watermelondb`
+
+A separate package, so apps that don't use WatermelonDB install nothing for it. It returns the
+`pullChanges` and `pushChanges` that WatermelonDB's `synchronize()` asks for. Each row becomes one
+record, each column an encrypted field, and concurrent edits merge per column:
+
+```ts
+const sync = createWatermelonSync(cloud, { tokenStore });
+await synchronize({ database, ...sync, sendCreatedAsUpdated: true });
+```
+
+See [its README](../react-native-nitro-cloudkit-watermelondb/README.md).
+
+## Android
+
+**Android has no CloudKit.** On Android `createNativeAdapter()` loads, reports
+`isSupported: false` and rejects `unsupported_platform`, so an app with Android users has three
+choices:
+
+1. **Apple devices sync, Android stays local.** This is the simplest and the default. Check
+   `cloud.isSupported`, hide the iCloud switch on Android, and keep Android data on the device.
+   The memory adapter keeps the same code path running in development.
+2. **Write a CloudKit Web Services adapter.** Android talks to the same private database over
+   Apple's REST API. It plugs in as [your own adapter](#your-own-adapter). The checklist below
+   covers what that takes.
+3. **Use a cross-platform backend** (Supabase, Firebase, your own server) when Android and iOS
+   users must share data, or when the checklist below rules option 2 out.
+
+### Checklist: a CloudKit Web Services adapter for Android
+
+Not built in this package. Check the first two points before writing any code:
+
+- [ ] **Encrypted fields.** This package writes every field to `encryptedValues`. Apple has not
+      documented that CloudKit Web Services or CloudKit JS can read encrypted fields. An Apple
+      engineer has pointed developers to CKTool JS (with a web auth token) for them. Prove it on
+      a test record before going further. Otherwise Android needs unencrypted fields, which this
+      package doesn't write.
+- [ ] **Advanced Data Protection.** For users with ADP, iCloud data on the web is off by default.
+      Test web access to your container with an ADP account and with "Access iCloud Data on the
+      Web" turned off.
+- [ ] **API token.** CloudKit Console → your container → Tokens & Keys → an API token for
+      **Production**, with a sign-in callback URL your Android app handles (an App Link or a
+      custom scheme).
+- [ ] **Sign in with Apple ID.** Open the web sign-in in a Custom Tab, receive `ckWebAuthToken`
+      on the callback, and store it encrypted (Android Keystore). Treat it as a session that can
+      expire, and sign in again when it does.
+- [ ] **The adapter.** Implement `CloudKitAdapter` over the REST endpoints: `zones/modify` (create
+      the zone), `records/changes` with a `syncToken` (fetch), `records/modify` with
+      `recordChangeTag` (saves and conflicts), and `assets/upload` plus download URLs (files).
+      Reject with `CloudKitError` codes, and the client adds deadlines, retries and tokens.
+- [ ] **No silent pushes.** CloudKit can't wake an Android app. Sync on launch, on resume and on a
+      timer, or use WorkManager.
+- [ ] **Same names on both sides.** The container, zone, record types and field names must match
+      the iOS app's, and the schema must be deployed to Production.
+- [ ] **Account identity.** `getAccount().identity` must hash the same user record id as on iOS,
+      so data from different Apple IDs never mixes.
+- [ ] **Tests.** Run the record-store and WatermelonDB test suites against the new adapter, and
+      against a development container.
+
 ## Limits
 
 - **1 MB per record, excluding assets.** Keys and values are counted as UTF-8 in JS before anything
@@ -280,19 +372,21 @@ last-writer-wins sync engine:
 
 **Verified:**
 
+- **Live iCloud, Production environment, release build on iPhone** (November 2026, as the sync of
+  an app in App Review): records saved and fetched across two iPhones, deletions propagated,
+  assets uploaded and removed, one end-to-end encrypted payload per record.
 - Unit tests cover the client, retries, tokens, the memory adapter, the record store, input checks,
   error parsing and the plugin's entitlement merge.
 - CI compiles the Swift (iOS simulator build of the example app) and the Kotlin (Android build of the
   example app).
 - A packed tarball is installed into a clean project, and its portable entry points import in Node.
 
-**Not yet verified:** the native CKSyncEngine paths (fetch, send, conflicts, zone creation, assets,
-account changes) have not run against a live iCloud account.
+**Not yet verified:** the macOS build in a shipping app, and account switching on a live device.
 
 **Not built:**
 
 - Shared database (`CKShare`), public database, queries, unencrypted fields, asset progress.
-- A CloudKit Web Services adapter.
+- A CloudKit Web Services adapter (see [Android](#android)).
 
 ## License
 
