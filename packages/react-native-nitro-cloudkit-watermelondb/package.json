@@ -71,14 +71,15 @@
         "--access",
         "public",
         "--provenance"
-      ]
+      ],
+      "publishPath": "package.tgz"
     },
     "git": false,
     "github": {
       "release": false
     },
     "hooks": {
-      "after:bump": "pnpm build"
+      "after:bump": "pnpm build && pnpm pack --out package.tgz"
     }
   }
 }
