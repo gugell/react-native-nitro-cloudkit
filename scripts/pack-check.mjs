@@ -21,6 +21,7 @@ import spawn from 'cross-spawn';
  */
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageRoot = join(root, 'packages/react-native-nitro-cloudkit');
+const watermelonRoot = join(root, 'packages/react-native-nitro-cloudkit-watermelondb');
 const temporary = mkdtempSync(join(tmpdir(), 'nitro-cloudkit-pack-'));
 
 function run(command, args, cwd) {
@@ -33,6 +34,11 @@ try {
   const { version } = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
   run('pnpm', ['pack', '--pack-destination', temporary], packageRoot);
   const tarball = join(temporary, `react-native-nitro-cloudkit-${version}.tgz`);
+  run('pnpm', ['pack', '--pack-destination', temporary], watermelonRoot);
+  const watermelonTarball = join(
+    temporary,
+    `react-native-nitro-cloudkit-watermelondb-${version}.tgz`,
+  );
 
   const consumer = join(temporary, 'consumer');
   mkdirSync(consumer);
@@ -43,13 +49,35 @@ try {
   // Peers (react-native, nitro) are the app's: not installed here.
   run(
     'npm',
-    ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--legacy-peer-deps', tarball],
+    [
+      'install',
+      '--ignore-scripts',
+      '--no-audit',
+      '--no-fund',
+      '--legacy-peer-deps',
+      tarball,
+      watermelonTarball,
+    ],
     consumer,
   );
   const installed = join(consumer, 'node_modules/react-native-nitro-cloudkit');
   const manifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'));
   assert.equal(manifest.version, version);
   assert.equal(manifest.private, undefined);
+  const watermelonInstalled = join(
+    consumer,
+    'node_modules/react-native-nitro-cloudkit-watermelondb',
+  );
+  const watermelonManifest = JSON.parse(
+    readFileSync(join(watermelonInstalled, 'package.json'), 'utf8'),
+  );
+  assert.equal(watermelonManifest.version, version);
+  // WatermelonDB stays the app's: a peer, never installed by the core or by this package.
+  assert.equal(watermelonManifest.dependencies, undefined);
+  assert.equal(manifest.peerDependencies['@nozbe/watermelondb'], undefined);
+  for (const section of ['dependencies', 'peerDependencies', 'devDependencies'])
+    for (const spec of Object.values(watermelonManifest[section] ?? {}))
+      assert.doesNotMatch(spec, /^(catalog|workspace|link|file):/, `Unresolved ${section} spec`);
   for (const section of ['dependencies', 'peerDependencies', 'devDependencies']) {
     for (const spec of Object.values(manifest[section] ?? {})) {
       assert.doesNotMatch(spec, /^(catalog|workspace|link|file):/, `Unresolved ${section} spec`);
@@ -108,7 +136,19 @@ try {
   assert.equal(typeof require('react-native-nitro-cloudkit/app.plugin'), 'function');
   assert.equal(typeof require('react-native-nitro-cloudkit/plugin'), 'function');
 
-  console.log(`Packed npm consumer verified: react-native-nitro-cloudkit@${version}`);
+  const watermelon = await import(pathToFileURL(join(watermelonInstalled, 'lib/index.js')).href);
+  const sync = watermelon.createWatermelonSync(cloud, {
+    tokenStore: core.createMemoryTokenStore(),
+  });
+  const pulled = await sync.pullChanges({ lastPulledAt: null });
+  assert.deepEqual(
+    pulled.changes.note.updated.map((raw) => raw.id),
+    ['n1'],
+  );
+
+  console.log(
+    `Packed npm consumer verified: react-native-nitro-cloudkit(-watermelondb)@${version}`,
+  );
 } finally {
   rmSync(temporary, { recursive: true, force: true });
 }

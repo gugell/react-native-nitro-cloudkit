@@ -1,0 +1,84 @@
+{
+  "name": "react-native-nitro-cloudkit-watermelondb",
+  "version": "0.0.0",
+  "description": "Sync a WatermelonDB database through CloudKit: pullChanges and pushChanges for synchronize(), on react-native-nitro-cloudkit. End-to-end encrypted, per-column merges, no server.",
+  "license": "MIT",
+  "author": "gugell",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gugell/react-native-nitro-cloudkit.git",
+    "directory": "packages/react-native-nitro-cloudkit-watermelondb"
+  },
+  "homepage": "https://github.com/gugell/react-native-nitro-cloudkit/tree/main/packages/react-native-nitro-cloudkit-watermelondb#readme",
+  "bugs": "https://github.com/gugell/react-native-nitro-cloudkit/issues",
+  "keywords": [
+    "react-native",
+    "watermelondb",
+    "cloudkit",
+    "icloud",
+    "sync",
+    "offline-first",
+    "ios"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "react-native": "./src/index.ts",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "pnpm build",
+    "release": "release-it"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@nozbe/watermelondb": ">=0.27.0",
+    "react-native-nitro-cloudkit": "workspace:^"
+  },
+  "devDependencies": {
+    "@nozbe/watermelondb": "catalog:",
+    "react-native-nitro-cloudkit": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "release-it": {
+    "npm": {
+      "publish": true,
+      "publishArgs": [
+        "--access",
+        "public",
+        "--provenance"
+      ]
+    },
+    "git": false,
+    "github": {
+      "release": false
+    },
+    "hooks": {
+      "after:bump": "pnpm build"
+    }
+  }
+}
