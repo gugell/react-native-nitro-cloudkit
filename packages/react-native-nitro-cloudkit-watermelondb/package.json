@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-cloudkit-watermelondb",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Sync a WatermelonDB database through CloudKit: pullChanges and pushChanges for synchronize(), on react-native-nitro-cloudkit. End-to-end encrypted, per-column merges, no server.",
   "license": "MIT",
   "author": "gugell",

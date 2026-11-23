@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-cloudkit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "CloudKit for React Native on Apple's CKSyncEngine: private database, custom zone, end-to-end encrypted fields, assets, with pluggable adapters (native, memory) and an Expo config plugin.",
   "license": "MIT",
   "author": "gugell",
